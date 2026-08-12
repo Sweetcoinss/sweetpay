@@ -27,7 +27,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
       {
         email: 'sofyanborghda@gmail.com',
         username: 'payme',
-        password: 'sofyan123+',
+        password: 'sofyan123',
         fullName: 'Payme',
         cardName: 'Payme',
         isActive: false,
