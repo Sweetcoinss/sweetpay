@@ -4,50 +4,21 @@ import { useState } from 'react';
     import { Button } from '@/components/ui/button';
     import { Input } from '@/components/ui/input';
     import { Label } from '@/components/ui/label';
-    import { AlertCircle, RefreshCw } from 'lucide-react';
-
-    interface Captcha { question: string; answer: number; }
-
-    function generateCaptcha(): Captcha {
-    const type = Math.floor(Math.random() * 3);
-    if (type === 0) {
-      const a = Math.floor(Math.random() * 10) + 1;
-      const b = Math.floor(Math.random() * 10) + 1;
-      return { question: `${a} + ${b}`, answer: a + b };
-    } else if (type === 1) {
-      const a = Math.floor(Math.random() * 10) + 6;
-      const b = Math.floor(Math.random() * 5) + 1;
-      return { question: `${a} - ${b}`, answer: a - b };
-    } else {
-      const a = Math.floor(Math.random() * 5) + 2;
-      const b = Math.floor(Math.random() * 5) + 2;
-      return { question: `${a} × ${b}`, answer: a * b };
-    }
-    }
+    import { AlertCircle } from 'lucide-react';
 
     export default function Login() {
     const [, navigate] = useLocation();
     const { login } = useAuth();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
-    const [captchaInput, setCaptchaInput] = useState('');
     const [error, setError] = useState('');
-    const [captcha, setCaptcha] = useState<Captcha>(generateCaptcha);
     const base = import.meta.env.BASE_URL?.replace(/\/$/, '') || '';
-
-    const refreshCaptcha = () => { setCaptcha(generateCaptcha()); setCaptchaInput(''); };
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       setError('');
-      if (parseInt(captchaInput) !== captcha.answer) {
-        setError('إجابة التحقق خاطئة، حاول مجدداً');
-        refreshCaptcha();
-        return;
-      }
       if (!login(identifier, password)) {
         setError('البريد أو اسم المستخدم أو كلمة المرور غير صحيحة');
-        refreshCaptcha();
         return;
       }
       navigate('/dashboard');
@@ -78,15 +49,6 @@ import { useState } from 'react';
               <div className="space-y-1">
                 <Label htmlFor="password">كلمة المرور</Label>
                 <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
-              </div>
-              <div className="space-y-1">
-                <Label>التحقق: كم يساوي <span className="font-bold text-primary">{captcha.question}</span> = ؟</Label>
-                <div className="flex gap-2">
-                  <Input value={captchaInput} onChange={e => setCaptchaInput(e.target.value)} required placeholder="الجواب" className="flex-1" />
-                  <Button type="button" variant="outline" size="icon" onClick={refreshCaptcha} title="تغيير السؤال">
-                    <RefreshCw size={15} />
-                  </Button>
-                </div>
               </div>
               <Button type="submit" className="w-full font-bold mt-2">دخول ←</Button>
             </form>
