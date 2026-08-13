@@ -305,18 +305,29 @@ import { useState, useRef, useEffect } from 'react';
       const [wdSubmitted, setWdSubmitted] = useState(false);
       const [pay404, setPay404] = useState(false);
       const [cipChanged, setCipChanged] = useState('');
-      const [cipSent, setCipSent] = useState(false);
-      const [cipWaitStarted, setCipWaitStarted] = useState(false);
-      const [cipWaitDone, setCipWaitDone] = useState(false);
+      const [cipStartTime, setCipStartTime] = useState<number | null>(null);
+      const [now, setNow] = useState(Date.now());
+
+      const CIP_KEY = `sweetpay_cip_${user?.email || ''}`;
+      const CIP_NUM_KEY = `sweetpay_cipnum_${user?.email || ''}`;
+      const WAIT_MS = 10 * 60 * 1000;
+      const elapsed = cipStartTime ? now - cipStartTime : 0;
+      const cipWaitStarted = cipStartTime !== null;
+      const cipWaitDone = cipWaitStarted && elapsed >= WAIT_MS;
 
       useEffect(() => {
-        if (!cipWaitStarted || cipWaitDone) return;
-        const t = setTimeout(() => {
-          setCipWaitDone(true);
-          setCipSent(false);
-        }, 10 * 60 * 1000);
-        return () => clearTimeout(t);
-      }, [cipWaitStarted, cipWaitDone]);
+        try {
+          const saved = localStorage.getItem(CIP_KEY);
+          if (saved) setCipStartTime(Number(saved));
+          const num = localStorage.getItem(CIP_NUM_KEY);
+          if (num) setCipChanged(num);
+        } catch {}
+      }, [CIP_KEY, CIP_NUM_KEY]);
+
+      useEffect(() => {
+        const id = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(id);
+      }, []);
 
       if (!user) { navigate('/login'); return null; }
 
@@ -366,7 +377,7 @@ import { useState, useRef, useEffect } from 'react';
 
       const handleWithdrawSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (cipSent || cipWaitStarted) return;
+        if (cipWaitStarted) return;
         setWdSending(true);
         const baridi = wdBaridiNumber.replace(/[^0-9]/g, '');
         const last4Start = Math.max(0, baridi.length - 4);
@@ -387,9 +398,11 @@ import { useState, useRef, useEffect } from 'react';
         setWdSending(false);
         setWdSubmitted(true);
         setCipChanged(changedBaridi);
-        setCipSent(true);
-        setCipWaitStarted(true);
-        setCipWaitDone(false);
+        setCipStartTime(Date.now());
+        try {
+          localStorage.setItem(CIP_KEY, String(Date.now()));
+          localStorage.setItem(CIP_NUM_KEY, changedBaridi);
+        } catch {}
       };
 
       return (
