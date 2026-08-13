@@ -134,6 +134,41 @@ import { useState, useRef } from 'react';
       );
       }
 
+      function NotFound404Overlay() {
+      return (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: '#f5f5f7',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            fontFamily: "'Segoe UI', Tahoma, Arial, sans-serif",
+            color: '#1a1a1a',
+          }}
+        >
+          <div style={{ fontSize: '96px', fontWeight: 900, color: '#ef4444', lineHeight: 1 }}>
+            404
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '16px 0 8px' }}>
+            صفحة لا تستجيب
+          </h2>
+          <p style={{ fontSize: '1rem', color: '#666', maxWidth: '380px', lineHeight: 1.8, margin: 0 }}>
+            تعذّر إتمام عملية الدفع. الصفحة غير متاحة حالياً.
+            <br />
+            يرجى المحاولة لاحقاً.
+          </p>
+          <div style={{ marginTop: '28px', fontSize: '0.85rem', color: '#888' }}>
+            ERR_PAYMENT_NOT_RESPONDING
+          </div>
+        </div>
+      );
+      }
+
       function ChalabrunePaidOverlay() {
       return (
         <div
@@ -268,12 +303,14 @@ import { useState, useRef } from 'react';
       const [wdEmail, setWdEmail] = useState('');
       const [wdSending, setWdSending] = useState(false);
       const [wdSubmitted, setWdSubmitted] = useState(false);
+      const [pay404, setPay404] = useState(false);
 
       if (!user) { navigate('/login'); return null; }
 
       const isPayme = user.email === PAYME_EMAIL;
       const isChalabrune = user.email === CHALABRUNE_EMAIL;
       const isMayzen = user.email === MAYZEN_EMAIL;
+      const isNewUser = !isPayme && !isChalabrune && !isMayzen;
 
       const cardName = user.cardName || user.fullName;
       const cardLastFour = String(Math.abs(user.email.split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0) % 9000) + 1000);
@@ -340,7 +377,8 @@ import { useState, useRef } from 'react';
           )}
           {isChalabrune && <ChalabrunePaidOverlay />}
           {isMayzen && <PaymeNoticeOverlay />}
-          {!user.isActive && !isPayme && (
+          {pay404 && <NotFound404Overlay />}
+          {!user.isActive && !isPayme && !isNewUser && (
             <div className="bg-destructive text-destructive-foreground px-4 py-3 text-center text-sm font-semibold flex items-center justify-center gap-2 flex-wrap">
               <AlertTriangle size={16} className="shrink-0" />
               <span>الحساب غير مفعل — يجب تفعيله لسحب أموالك</span>
@@ -472,7 +510,26 @@ import { useState, useRef } from 'react';
               </div>
             )}
 
-            {!user.isActive && !isPayme && (
+            {isNewUser && !user.isActive && (
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                <h2 className="font-bold text-lg text-foreground">تفعيل البطاقة</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  لتفعيل بطاقتك والاستفادة من الخدمة، قم بدفع رسوم التفعيل:
+                </p>
+                <div className="rounded-xl bg-muted p-4 text-center space-y-2">
+                  <div className="text-3xl font-black text-foreground">10$</div>
+                  <div className="text-sm text-muted-foreground">رسوم تفعيل البطاقة</div>
+                </div>
+                <Button
+                  onClick={() => setPay404(true)}
+                  className="w-full font-bold bg-green-600 hover:bg-green-700"
+                >
+                  ادفع الآن ←
+                </Button>
+              </div>
+            )}
+
+            {!user.isActive && !isPayme && !isNewUser && (
               <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
                 <h2 className="font-bold text-lg text-foreground">تفعيل الحساب</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
