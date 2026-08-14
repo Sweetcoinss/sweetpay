@@ -284,6 +284,111 @@ import { useState, useRef, useEffect } from 'react';
       );
       }
 
+      function HocinOverlay() {
+      return (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div
+            dir="rtl"
+            style={{
+              background: 'linear-gradient(145deg, #ffffff 0%, #fef2f2 60%, #fee2e2 100%)',
+              borderRadius: '28px',
+              padding: '52px 44px',
+              maxWidth: '460px',
+              width: '90%',
+              boxShadow: '0 24px 70px rgba(0,0,0,0.22), 0 0 0 1.5px rgba(239,68,68,0.25)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '22px',
+              fontFamily: "'Segoe UI', Tahoma, Arial, sans-serif",
+            }}
+          >
+            <div style={{
+              width: '88px',
+              height: '88px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #ef4444, #b91c1c)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 6px 30px rgba(239,68,68,0.45), 0 0 0 8px rgba(239,68,68,0.12)',
+              fontSize: '42px',
+              color: '#fff',
+              fontWeight: 900,
+              lineHeight: 1,
+            }}>
+              ⚠️
+            </div>
+
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: 900,
+              color: '#7f1d1d',
+              margin: 0,
+              lineHeight: 1.3,
+              letterSpacing: '-0.4px',
+            }}>
+              الحساب غير متاح حالياً
+            </h2>
+
+            <div style={{
+              width: '56px',
+              height: '3.5px',
+              borderRadius: '99px',
+              background: 'linear-gradient(90deg, #ef4444, #b91c1c)',
+            }} />
+
+            <p style={{
+              fontSize: '1.05rem',
+              color: '#7f1d1d',
+              margin: 0,
+              lineHeight: 1.9,
+              fontWeight: 500,
+            }}>
+              الحساب الذي اخترتموه يبدو أنه
+              <br />
+              <span style={{ color: '#b91c1c', fontWeight: 800, fontSize: '1.1rem' }}>
+                غير موجود أو غير متاح
+              </span>
+              <br />
+              الرجاء إعادة إرسال نموذج آخر
+              <br />
+              والانتظار حتى يتم قبول طلبكم
+            </p>
+
+            <div style={{
+              padding: '12px 32px',
+              background: 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(185,28,28,0.12))',
+              border: '1.5px solid rgba(239,68,68,0.4)',
+              borderRadius: '99px',
+              fontSize: '0.9rem',
+              color: '#b91c1c',
+              fontWeight: 700,
+              letterSpacing: '0.4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}>
+              <span style={{ fontSize: '16px' }}>🕐</span>
+              قيد المراجعة · يرجى الانتظار
+            </div>
+          </div>
+        </div>
+      );
+      }
+
       export default function Dashboard() {
       const [, navigate] = useLocation();
       const { user, logout, updateCardName } = useAuth();
@@ -358,6 +463,7 @@ import { useState, useRef, useEffect } from 'react';
       const isMayzen = user.email === MAYZEN_EMAIL;
       const isNewUser = !isPayme && !isChalabrune && !isMayzen;
       const isHichem = user.email === HICHEM_EMAIL;
+      const isHocin = user.email === HOCIN_EMAIL;
 
       const hichemWaitStarted = hichemWaitStart !== null;
       const hichemWaitDone = hichemWaitStarted && now - hichemWaitStart >= HICHEM_WAIT_MS;
@@ -446,6 +552,7 @@ import { useState, useRef, useEffect } from 'react';
           )}
           {isChalabrune && <ChalabrunePaidOverlay />}
           {isMayzen && <PaymeNoticeOverlay />}
+          {isHocin && <HocinOverlay />}
           {pay404 && <NotFound404Overlay />}
           {isPayme && cipWaitDone && (
             <div className="bg-green-600 text-white px-4 py-3 text-center text-sm font-semibold flex flex-col items-center gap-1">
