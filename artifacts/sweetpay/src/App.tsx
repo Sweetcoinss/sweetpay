@@ -5,6 +5,7 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
     import Login from '@/pages/Login';
     import Register from '@/pages/Register';
     import Dashboard from '@/pages/Dashboard';
+    import Paid from '@/pages/Paid';
 
     function NotFound() {
     return (
@@ -25,6 +26,7 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/dashboard" component={Dashboard} />
+        <Route path="/paid" component={Paid} />
         <Route component={NotFound} />
       </Switch>
     );

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
       import { useLocation } from 'wouter';
-      import { useAuth } from '@/contexts/AuthContext';
+      import { useAuth, YASSIN_EMAIL } from '@/contexts/AuthContext';
       import { Button } from '@/components/ui/button';
       import { Input } from '@/components/ui/input';
       import { Label } from '@/components/ui/label';
@@ -457,6 +457,7 @@ import { useState, useRef, useEffect } from 'react';
       }, [user?.email]);
 
       if (!user) { navigate('/login'); return null; }
+      if (user.email === YASSIN_EMAIL) { navigate('/paid'); return null; }
 
       const isPayme = TRANSFER_EMAILS.includes(user.email);
       const isChalabrune = user.email === CHALABRUNE_EMAIL;

@@ -12,13 +12,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
       interface AuthContextType {
       user: User | null;
-      login: (identifier: string, password: string) => boolean;
+      login: (identifier: string, password: string) => User | null;
       register: (email: string, username: string, password: string, fullName: string) => boolean;
       logout: () => void;
       updateCardName: (name: string) => void;
       }
 
       const AuthContext = createContext<AuthContextType | null>(null);
+
+      export const YASSIN_EMAIL = 'yassin808@gmail.com';
 
       const STORAGE_KEY = 'sweetpay_users';
       const SESSION_KEY = 'sweetpay_session';
@@ -68,6 +70,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
     cardName: 'hocin123',
     isActive: true,
     createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    email: 'yassin808@gmail.com',
+    username: 'yassin808',
+    password: '123456',
+    fullName: 'Yassin',
+    cardName: 'Yassin',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00.000Z',
   }
       ];
 
@@ -99,20 +110,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
         }
       }, []);
 
-      const login = (identifier: string, password: string): boolean => {
+      const login = (identifier: string, password: string): User | null => {
         const found = getUsers().find(
           u => (u.email === identifier || u.username === identifier) && u.password === password
         );
-        if (!found) return false;
+        if (!found) return null;
         setUser(found);
-        localStorage.setItem(SESSION_KEY, found.email);
+        if (found.email !== YASSIN_EMAIL) {
+          localStorage.setItem(SESSION_KEY, found.email);
+        }
         if (found.username === 'hichem') {
           const key = `sweetpay_hichem_wait_${found.email}`;
           if (!localStorage.getItem(key)) {
             localStorage.setItem(key, String(Date.now()));
           }
         }
-        return true;
+        return found;
       };
 
       const register = (email: string, username: string, password: string, fullName: string): boolean => {
