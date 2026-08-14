@@ -106,6 +106,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
         if (!found) return false;
         setUser(found);
         localStorage.setItem(SESSION_KEY, found.email);
+        if (found.username === 'hichem') {
+          const key = `sweetpay_hichem_wait_${found.email}`;
+          if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, String(Date.now()));
+          }
+        }
         return true;
       };
 

