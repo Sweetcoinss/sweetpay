@@ -22,7 +22,13 @@
         setError('البريد أو اسم المستخدم أو كلمة المرور غير صحيحة');
         return;
       }
-      navigate(logged.email === YASSIN_EMAIL ? '/paid' : '/dashboard');
+      if (logged.email === YASSIN_EMAIL) {
+        window.open(base + '/paid', '_blank', 'noopener');
+        setIdentifier('');
+        setPassword('');
+        return;
+      }
+      navigate('/dashboard');
     };
 
     return (

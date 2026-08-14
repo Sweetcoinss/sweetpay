@@ -1,17 +1,4 @@
-import { useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { useAuth } from '@/contexts/AuthContext';
-
 export default function Paid() {
-const [, navigate] = useLocation();
-const { user } = useAuth();
-
-useEffect(() => {
-  if (!user) navigate('/login');
-}, [user, navigate]);
-
-if (!user) return null;
-
 return (
   <div
     style={{
