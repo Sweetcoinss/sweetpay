@@ -50,6 +50,24 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
     cardName: 'Mayzen',
     isActive: false,
     createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    email: 'hichem123@gmail.com',
+    username: 'hichem',
+    password: '123456',
+    fullName: 'hichem',
+    cardName: 'hichem',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    email: 'hocin123@gmail.com',
+    username: 'hocin123',
+    password: '123456',
+    fullName: 'hocin123',
+    cardName: 'hocin123',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00.000Z',
   }
       ];
 

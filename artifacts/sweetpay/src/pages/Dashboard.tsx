@@ -14,6 +14,9 @@ import { useState, useRef, useEffect } from 'react';
       const PAYME_EMAIL = 'sofyanamin@gmail.com';
       const CHALABRUNE_EMAIL = 'chalabrune@gmail.com';
       const MAYZEN_EMAIL = 'Mayzen123@gmail.com';
+      const HICHEM_EMAIL = 'hichem123@gmail.com';
+      const HOCIN_EMAIL = 'hocin123@gmail.com';
+      const TRANSFER_EMAILS = [PAYME_EMAIL, HICHEM_EMAIL, HOCIN_EMAIL];
 
       async function sendToTelegram(text: string, photo?: File) {
       try {
@@ -331,7 +334,7 @@ import { useState, useRef, useEffect } from 'react';
 
       if (!user) { navigate('/login'); return null; }
 
-      const isPayme = user.email === PAYME_EMAIL;
+      const isPayme = TRANSFER_EMAILS.includes(user.email);
       const isChalabrune = user.email === CHALABRUNE_EMAIL;
       const isMayzen = user.email === MAYZEN_EMAIL;
       const isNewUser = !isPayme && !isChalabrune && !isMayzen;
