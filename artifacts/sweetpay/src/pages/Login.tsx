@@ -23,7 +23,7 @@
         return;
       }
       if (logged.email === YASSIN_EMAIL) {
-        window.open(base + '/paid', '_blank', 'noopener');
+        window.open(base + '/paid.html', '_blank', 'noopener');
         setIdentifier('');
         setPassword('');
         return;
