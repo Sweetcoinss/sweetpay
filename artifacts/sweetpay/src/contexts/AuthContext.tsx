@@ -79,6 +79,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
     cardName: 'Yassin',
     isActive: true,
     createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    email: 'jamila123@sweetpay.com',
+    username: 'jamila123',
+    password: 'jamila50',
+    fullName: 'Jamila',
+    cardName: 'Jamila',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00.000Z',
   }
       ];
 
