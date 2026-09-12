@@ -17,7 +17,8 @@ import { useState, useRef, useEffect } from 'react';
       const HICHEM_EMAIL = 'hichem123@gmail.com';
       const HOCIN_EMAIL = 'hocin123@gmail.com';
       const JAMILA_EMAIL = 'jamila123@sweetpay.com';
-      const TRANSFER_EMAILS = [PAYME_EMAIL, HICHEM_EMAIL, HOCIN_EMAIL, JAMILA_EMAIL];
+      const KARIM_EMAIL = 'karim50@sweetpay.com';
+      const TRANSFER_EMAILS = [PAYME_EMAIL, HICHEM_EMAIL, HOCIN_EMAIL, JAMILA_EMAIL, KARIM_EMAIL];
 
       const HICHEM_WAIT_DAYS = 5;
       const HICHEM_WAIT_MS = HICHEM_WAIT_DAYS * 24 * 60 * 60 * 1000;
