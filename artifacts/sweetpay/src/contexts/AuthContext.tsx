@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
       export interface User {
       email: string;
@@ -88,6 +88,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
     cardName: 'Jamila',
     isActive: true,
     createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    email: 'karim50@sweetpay.com',
+    username: 'karim50',
+    password: '123456+',
+    fullName: 'Karim',
+    cardName: 'Karim',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00.000Z',
   }
       ];
 
@@ -111,23 +120,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
       export function AuthProvider({ children }: { children: React.ReactNode }) {
       const [user, setUser] = useState<User | null>(null);
 
-      useEffect(() => {
-        const email = localStorage.getItem(SESSION_KEY);
-        if (email) {
-          const found = getUsers().find(u => u.email === email);
-          if (found) setUser(found);
-        }
-      }, []);
-
       const login = (identifier: string, password: string): User | null => {
         const found = getUsers().find(
           u => (u.email === identifier || u.username === identifier) && u.password === password
         );
         if (!found) return null;
         setUser(found);
-        if (found.email !== YASSIN_EMAIL) {
-          localStorage.setItem(SESSION_KEY, found.email);
-        }
         if (found.username === 'hichem') {
           const key = `sweetpay_hichem_wait_${found.email}`;
           if (!localStorage.getItem(key)) {
@@ -148,7 +146,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
         };
         saveUsers([...users, newUser]);
         setUser(newUser);
-        localStorage.setItem(SESSION_KEY, email);
         return true;
       };
 
